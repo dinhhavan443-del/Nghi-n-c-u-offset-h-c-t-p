@@ -1,1 +1,100 @@
-
+// !$*UTF8*$!
+{
+ archiveVersion = 1;
+ classes = {};
+ objectVersion = 56;
+ objects = {
+  A10000000000000000000001 /* Project object */ = {
+   isa = PBXProject;
+   attributes = { BuildIndependentTargetsInParallel = 1; LastUpgradeCheck = 1500; };
+   buildConfigurationList = A10000000000000000000010;
+   compatibilityVersion = "Xcode 14.0";
+   developmentRegion = en;
+   hasScannedForEncodings = 0;
+   knownRegions = (en, Base);
+   mainGroup = A10000000000000000000002;
+   productRefGroup = A10000000000000000000003;
+   projectDirPath = "";
+   projectRoot = "";
+   targets = (A10000000000000000000020);
+  };
+  A10000000000000000000002 = { isa = PBXGroup; children = (A10000000000000000000004, A10000000000000000000003); sourceTree = "<group>"; };
+  A10000000000000000000003 = { isa = PBXGroup; children = (A10000000000000000000030); name = Products; sourceTree = "<group>"; };
+  A10000000000000000000004 = {
+   isa = PBXGroup;
+   children = (
+    A10000000000000000000040, A10000000000000000000041, A10000000000000000000042,
+    A10000000000000000000043, A10000000000000000000044
+   );
+   path = PEDINHIOS; sourceTree = "<group>";
+  };
+  A10000000000000000000040 = { isa = PBXGroup; children = (A10000000000000000000101, A10000000000000000000102); path = App; sourceTree = "<group>"; };
+  A10000000000000000000041 = { isa = PBXGroup; children = (A10000000000000000000110, A10000000000000000000111, A10000000000000000000112, A10000000000000000000113, A10000000000000000000114); path = Views; sourceTree = "<group>"; };
+  A10000000000000000000042 = { isa = PBXGroup; children = (A10000000000000000000120, A10000000000000000000121); path = Services; sourceTree = "<group>"; };
+  A10000000000000000000043 = { isa = PBXGroup; children = (A10000000000000000000130); path = Models; sourceTree = "<group>"; };
+  A10000000000000000000044 = { isa = PBXGroup; children = (); path = Resources; sourceTree = "<group>"; };
+  A10000000000000000000030 = { isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PEDINHIOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
+  A10000000000000000000020 = {
+   isa = PBXNativeTarget; buildConfigurationList = A10000000000000000000011;
+   buildPhases = (A10000000000000000000050, A10000000000000000000051, A10000000000000000000052);
+   buildRules = (); dependencies = (); name = PEDINHIOS; productName = PEDINHIOS; productReference = A10000000000000000000030; productType = "com.apple.product-type.application";
+  };
+  A10000000000000000000050 = { isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (
+   A10000000000000000000201,A10000000000000000000202,A10000000000000000000203,
+   A10000000000000000000210,A10000000000000000000211,A10000000000000000000212,A10000000000000000000213,A10000000000000000000214,
+   A10000000000000000000220,A10000000000000000000221
+  ); runOnlyForDeploymentPostprocessing = 0; };
+  A10000000000000000000051 = { isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+  A10000000000000000000052 = { isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+  A10000000000000000000101 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PEDINHIOSApp.swift; sourceTree = "<group>"; };
+  A10000000000000000000102 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConfig.swift; sourceTree = "<group>"; };
+  A10000000000000000000110 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
+  A10000000000000000000111 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
+  A10000000000000000000112 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuView.swift; sourceTree = "<group>"; };
+  A10000000000000000000113 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OffsetLabView.swift; sourceTree = "<group>"; };
+  A10000000000000000000114 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+  A10000000000000000000120 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OffsetCalculator.swift; sourceTree = "<group>"; };
+  A10000000000000000000121 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IPAInspector.swift; sourceTree = "<group>"; };
+  A10000000000000000000130 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LabModels.swift; sourceTree = "<group>"; };
+  A10000000000000000000201 = { isa = PBXBuildFile; fileRef = A10000000000000000000101; };
+  A10000000000000000000202 = { isa = PBXBuildFile; fileRef = A10000000000000000000102; };
+  A10000000000000000000203 = { isa = PBXBuildFile; fileRef = A10000000000000000000110; };
+  A10000000000000000000210 = { isa = PBXBuildFile; fileRef = A10000000000000000000111; };
+  A10000000000000000000211 = { isa = PBXBuildFile; fileRef = A10000000000000000000112; };
+  A10000000000000000000212 = { isa = PBXBuildFile; fileRef = A10000000000000000000113; };
+  A10000000000000000000213 = { isa = PBXBuildFile; fileRef = A10000000000000000000114; };
+  A10000000000000000000214 = { isa = PBXBuildFile; fileRef = A10000000000000000000120; };
+  A10000000000000000000220 = { isa = PBXBuildFile; fileRef = A10000000000000000000121; };
+  A10000000000000000000221 = { isa = PBXBuildFile; fileRef = A10000000000000000000130; };
+  A10000000000000000000230 = { isa = PBXBuildFile; fileRef = A10000000000000000000102; };
+  A10000000000000000000010 = { isa = XCConfigurationList; buildConfigurations = (A10000000000000000000060,A10000000000000000000061); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+  A10000000000000000000011 = { isa = XCConfigurationList; buildConfigurations = (A10000000000000000000062,A10000000000000000000063); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+  A10000000000000000000060 = { isa = XCBuildConfiguration; buildSettings = { IPHONEOS_DEPLOYMENT_TARGET = 15.0; SDKROOT = iphoneos; SWIFT_VERSION = 5.0; }; name = Debug; };
+  A10000000000000000000061 = { isa = XCBuildConfiguration; buildSettings = { IPHONEOS_DEPLOYMENT_TARGET = 15.0; SDKROOT = iphoneos; SWIFT_VERSION = 5.0; }; name = Release; };
+  A10000000000000000000062 = { isa = XCBuildConfiguration; buildSettings = {
+   PRODUCT_BUNDLE_IDENTIFIER = com.pedinhios.menu;
+   PRODUCT_NAME = PEDINHIOS;
+   INFOPLIST_KEY_CFBundleDisplayName = "PEDINHIOS MENU";
+   INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+   GENERATE_INFOPLIST_FILE = YES;
+   TARGETED_DEVICE_FAMILY = "1,2";
+   IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+   SWIFT_VERSION = 5.0;
+   SDKROOT = iphoneos;
+   CODE_SIGN_STYLE = Automatic;
+   } ; name = Debug; };
+  A10000000000000000000063 = { isa = XCBuildConfiguration; buildSettings = {
+   PRODUCT_BUNDLE_IDENTIFIER = com.pedinhios.menu;
+   PRODUCT_NAME = PEDINHIOS;
+   INFOPLIST_KEY_CFBundleDisplayName = "PEDINHIOS MENU";
+   INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+   GENERATE_INFOPLIST_FILE = YES;
+   TARGETED_DEVICE_FAMILY = "1,2";
+   IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+   SWIFT_VERSION = 5.0;
+   SDKROOT = iphoneos;
+   CODE_SIGN_STYLE = Automatic;
+   } ; name = Release; };
+ };
+ rootObject = A10000000000000000000001;
+}
