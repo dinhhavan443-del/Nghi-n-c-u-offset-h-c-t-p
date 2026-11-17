@@ -1,65 +1,52 @@
 import SwiftUI
 
 struct HomeView: View {
+    @Binding var selection: Int
     var body: some View {
         ScrollView(showsIndicators: false) {
-            VStack(spacing: 15) {
+            VStack(spacing: 14) {
                 VStack(alignment: .leading, spacing: 12) {
-                    Text("WELCOME BACK").font(.system(size: 10, weight: .bold)).tracking(2).foregroundColor(Color.iceBlue)
-                    Text("PEDINHIOS\nCONTROL").font(.system(size: 32, weight: .black, design: .rounded)).foregroundColor(.white)
-                    Text("Bộ công cụ nghiên cứu và tiện ích iOS").font(.system(size: 13)).foregroundColor(.white.opacity(0.62))
-                    HStack {
-                        Label("ỨNG DỤNG ĐANG HOẠT ĐỘNG", systemImage: "checkmark.circle.fill")
-                            .font(.system(size: 10, weight: .bold)).foregroundColor(.green)
-                        Spacer()
-                        Text("v1.0").font(.system(size: 10, weight: .bold, design: .monospaced)).foregroundColor(.white.opacity(0.5))
-                    }.padding(.top, 8)
+                    Text("WELCOME TO THE LAB").font(.system(size: 10, weight: .bold)).tracking(2).foregroundColor(.iceBlue)
+                    Text("PEDINHIOS\nEDUCATION LAB").font(.system(size: 29, weight: .black, design: .rounded)).foregroundColor(.white)
+                    Text("Học phân tích tệp, kiến trúc ARM64, HEX, Mach-O và cách tính offset bằng dữ liệu bạn có quyền nghiên cứu.")
+                        .font(.system(size: 12)).foregroundColor(.white.opacity(0.65))
+                    HStack { Label("LOCAL STUDY MODE", systemImage: "checkmark.shield.fill").font(.system(size: 10, weight: .bold)).foregroundColor(.green); Spacer(); Text("v2.0 LAB").font(.system(size: 10, weight: .bold, design: .monospaced)).foregroundColor(.white.opacity(0.5)) }
+                }.frame(maxWidth: .infinity, alignment: .leading).padding(20)
+                    .background(LinearGradient(colors: [Color.iceBlue.opacity(0.17), Color.panel], startPoint: .topLeading, endPoint: .bottomTrailing))
+                    .overlay(RoundedRectangle(cornerRadius: 22).stroke(Color.iceBlue.opacity(0.25), lineWidth: 1)).clipShape(RoundedRectangle(cornerRadius: 22))
+                Panel(title: "LAB MODULES", icon: "square.grid.2x2.fill") {
+                    HomeModule(icon: "number", title: "Offset Calculator", detail: "Base + Offset • RVA/VA • Hex/Decimal") { selection = 1 }
+                    HomeModule(icon: "doc.viewfinder", title: "File & Binary Lab", detail: "Chọn tệp • Hex dump • ASCII strings • Header") { selection = 2 }
+                    HomeModule(icon: "cpu", title: "ARM64 Learning", detail: "Register • Instruction • Addressing") { selection = 3 }
+                    HomeModule(icon: "book.closed", title: "Study Library", detail: "ASLR • Mach-O • IPA • Dylib • Pointer") { selection = 3 }
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(20)
-                .background(LinearGradient(colors: [Color.iceBlue.opacity(0.17), Color.panel], startPoint: .topLeading, endPoint: .bottomTrailing))
-                .overlay(RoundedRectangle(cornerRadius: 22).stroke(Color.iceBlue.opacity(0.25), lineWidth: 1))
-                .clipShape(RoundedRectangle(cornerRadius: 22))
-
-                Panel(title: "TOOLS OVERVIEW", icon: "square.grid.2x2.fill") {
-                    HStack(spacing: 10) {
-                        StatTile(value: "04", label: "MODULES")
-                        StatTile(value: "ARM64", label: "ARCH LAB")
-                        StatTile(value: "iOS 15+", label: "TARGET")
-                    }
+                Panel(title: "QUICK FACTS", icon: "info.circle") {
+                    InfoLine(label: "Admin", value: AppConfig.admin)
+                    InfoLine(label: "TikTok", value: "Pedinhios")
+                    InfoLine(label: "iOS target", value: "15.0+")
+                    InfoLine(label: "File processing", value: "On-device")
                 }
-                Panel(title: "PROJECT INFORMATION", icon: "info.circle") {
-                    InfoLine(label: "Administrator", value: AppConfig.admin)
-                    InfoLine(label: "Social", value: AppConfig.social)
-                    InfoLine(label: "Build", value: "GitHub Actions")
-                }
-                Text("PEDINHIOS MENU • EDUCATIONAL TOOLKIT").font(.system(size: 9, weight: .semibold)).tracking(1.2)
-                    .foregroundColor(.white.opacity(0.3)).padding(.top, 4)
-            }.padding(18)
+                Text("Chỉ phân tích tệp người dùng chọn hoặc dữ liệu mẫu; không đọc/ghi bộ nhớ tiến trình ứng dụng khác.")
+                    .font(.system(size: 10)).foregroundColor(.white.opacity(0.42)).frame(maxWidth: .infinity, alignment: .leading)
+            }.padding(16)
         }
     }
 }
 
-struct StatTile: View {
-    let value: String
-    let label: String
+struct HomeModule: View {
+    let icon: String; let title: String; let detail: String; let action: () -> Void
     var body: some View {
-        VStack(spacing: 6) {
-            Text(value).font(.system(size: 15, weight: .black, design: .rounded)).foregroundColor(.white)
-            Text(label).font(.system(size: 8, weight: .bold)).foregroundColor(Color.iceBlue.opacity(0.8))
-        }.frame(maxWidth: .infinity).padding(.vertical, 13)
-            .background(Color.white.opacity(0.045)).clipShape(RoundedRectangle(cornerRadius: 12))
+        Button(action: action) {
+            HStack(spacing: 11) {
+                Image(systemName: icon).foregroundColor(.iceBlue).frame(width: 36, height: 36).background(Color.iceBlue.opacity(0.1)).clipShape(RoundedRectangle(cornerRadius: 10))
+                VStack(alignment: .leading, spacing: 3) { Text(title).font(.system(size: 12, weight: .bold)).foregroundColor(.white); Text(detail).font(.system(size: 10)).foregroundColor(.white.opacity(0.5)) }
+                Spacer(); Image(systemName: "chevron.right").font(.system(size: 10, weight: .bold)).foregroundColor(.white.opacity(0.35))
+            }
+        }.buttonStyle(.plain)
     }
 }
 
 struct InfoLine: View {
-    let label: String
-    let value: String
-    var body: some View {
-        HStack {
-            Text(label).foregroundColor(.white.opacity(0.5))
-            Spacer()
-            Text(value).foregroundColor(.white).font(.system(size: 12, weight: .semibold))
-        }.font(.system(size: 12))
-    }
+    let label: String; let value: String
+    var body: some View { HStack { Text(label).foregroundColor(.white.opacity(0.5)); Spacer(); Text(value).foregroundColor(.white).font(.system(size: 12, weight: .semibold)) }.font(.system(size: 12)) }
 }
