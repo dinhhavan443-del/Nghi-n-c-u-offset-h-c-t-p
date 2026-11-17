@@ -26,3 +26,31 @@ struct SettingsView: View {
         }
     }
 }
+
+
+/// Reusable settings row compatible with iOS 15+.
+struct ToggleRow: View {
+    let title: String
+    let detail: String
+    @Binding var isOn: Bool
+
+    var body: some View {
+        HStack(alignment: .center, spacing: 12) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title)
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(.white)
+                Text(detail)
+                    .font(.system(size: 10))
+                    .foregroundColor(.white.opacity(0.55))
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            Spacer(minLength: 8)
+            Toggle(title, isOn: $isOn)
+                .labelsHidden()
+                .tint(.iceBlue)
+                .accessibilityLabel(title)
+        }
+        .padding(.vertical, 5)
+    }
+}
