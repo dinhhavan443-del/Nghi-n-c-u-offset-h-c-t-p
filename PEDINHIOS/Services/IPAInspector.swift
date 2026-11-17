@@ -28,31 +28,45 @@ struct FileReport {
 enum FileStudyService {
     static let maximumFileSize = 64 * 1024 * 1024
 
-    static func inspect(url: URL) throws -> FileReport {
-        var coordinatedData: Data?
+    static func inspect(data: Data, name: String) throws -> FileReport {
+        guard data.count <= maximumFileSize else {
+            throw NSError(domain: "PEDINHIOS", code: 64, userInfo: [NSLocalizedDescriptionKey: "Tệp vượt giới hạn 64 MB trong bản này."])
+        }
+        let bytes = [UInt8](data)
+        let ext = (name as NSString).pathExtension
+        return FileReport(name: name,
+                          fileExtension: ext.isEmpty ? "Không rõ" : ext.uppercased(),
+                          size: bytes.count, formatInfo: identifyFormat(bytes: bytes), bytes: bytes,
+                          printableStrings: extractStringsWithOffsets(bytes: bytes, minimumLength: 4, limit: 300))
+    }
+
+    /// Read a Files/iCloud/provider URL while its security scope is active.
+    /// NSFileCoordinator lets File Provider download or vend the selected item.
+    static func readSelectedFile(at url: URL) throws -> Data {
+        let didStartAccess = url.startAccessingSecurityScopedResource()
+        defer { if didStartAccess { url.stopAccessingSecurityScopedResource() } }
         var coordinationError: NSError?
         var readError: Error?
+        var result: Data?
         let coordinator = NSFileCoordinator(filePresenter: nil)
-        coordinator.coordinate(readingItemAt: url, options: [], error: &coordinationError) { readableURL in
+        coordinator.coordinate(readingItemAt: url, options: [], error: &coordinationError) { coordinatedURL in
             do {
-                coordinatedData = try Data(contentsOf: readableURL, options: [.mappedIfSafe])
-            } catch {
-                readError = error
-            }
+                let values = try coordinatedURL.resourceValues(forKeys: [.fileSizeKey, .isRegularFileKey])
+                if let isRegular = values.isRegularFile, !isRegular {
+                    throw NSError(domain: "PEDINHIOS", code: 65, userInfo: [NSLocalizedDescriptionKey: "Mục đã chọn không phải tệp thông thường."])
+                }
+                if let size = values.fileSize, size > maximumFileSize {
+                    throw NSError(domain: "PEDINHIOS", code: 64, userInfo: [NSLocalizedDescriptionKey: "Tệp lớn hơn giới hạn 64 MB."])
+                }
+                result = try Data(contentsOf: coordinatedURL, options: [.mappedIfSafe])
+            } catch { readError = error }
         }
         if let coordinationError { throw coordinationError }
         if let readError { throw readError }
-        guard let data = coordinatedData else {
-            throw NSError(domain: "PEDINHIOS", code: 65, userInfo: [NSLocalizedDescriptionKey: "Không đọc được nội dung tệp từ Files. Hãy thử tải tệp về máy hoặc lưu vào mục Trên iPhone của tôi rồi chọn lại."])
+        guard let result else {
+            throw NSError(domain: "PEDINHIOS", code: 66, userInfo: [NSLocalizedDescriptionKey: "iOS không cung cấp được dữ liệu của tệp đã chọn. Hãy tải tệp từ iCloud về máy rồi thử lại."])
         }
-        guard data.count <= maximumFileSize else {
-            throw NSError(domain: "PEDINHIOS", code: 64, userInfo: [NSLocalizedDescriptionKey: "Tệp vượt giới hạn chỉnh sửa an toàn 64 MB."])
-        }
-        let bytes = [UInt8](data)
-        return FileReport(name: url.lastPathComponent,
-                          fileExtension: url.pathExtension.isEmpty ? "Không rõ" : url.pathExtension.uppercased(),
-                          size: bytes.count, formatInfo: identifyFormat(bytes: bytes), bytes: bytes,
-                          printableStrings: extractStringsWithOffsets(bytes: bytes, minimumLength: 4, limit: 300))
+        return result
     }
 
     static func hexDump(bytes: [UInt8], baseOffset: Int) -> String {
@@ -163,6 +177,11 @@ struct FileLabView: View {
     @State private var errorMessage: String?
     @State private var offsetInput = "0x0"
     @State private var offsetPreview: String?
+    @State private var offsetDetails: String?
+    @State private var segmentFileOffset = "0x0"
+    @State private var segmentVMAddress = "0x10000000"
+    @State private var imageBaseForFile = "0x10000000"
+    @State private var translatedOffset: String?
     @State private var searchText = ""
     @State private var searchMode = 0
     @State private var searchHits: [ByteHit] = []
@@ -200,9 +219,21 @@ struct FileLabView: View {
                     Panel(title: "OFFSET READER", icon: "scope") {
                         HexField(title: "FILE OFFSET (VÍ DỤ 0x7729)", text: $offsetInput)
                         Button("ĐỌC VÙNG BYTE TẠI OFFSET") { inspectOffset(report) }.font(.system(size: 10, weight: .bold)).foregroundColor(.iceBlue)
+                        if let offsetDetails { Text(offsetDetails).font(.system(size: 10, design: .monospaced)).foregroundColor(.white).textSelection(.enabled) }
                         if let offsetPreview { ScrollView(.horizontal) { Text(offsetPreview).font(.system(size: 9, design: .monospaced)).foregroundColor(.iceBlue).textSelection(.enabled) } }
                         Text("Offset là vị trí byte trong tệp. Một giá trị như 0x7729 không tự chứng minh đó là Aimlock, vị trí hay bone; cần phân tích cấu trúc và ngữ cảnh.")
                             .font(.system(size: 10)).foregroundColor(.white.opacity(0.55))
+                    }
+                    Panel(title: "FILE OFFSET → RVA / VA", icon: "arrow.left.arrow.right") {
+                        Text("Ánh xạ offset của tệp qua segment đã biết. Nhập metadata segment từ header Mach-O/ELF; không đoán địa chỉ khi thiếu segment.")
+                            .font(.system(size: 10)).foregroundColor(.white.opacity(0.58))
+                        HexField(title: "FILE OFFSET CẦN DỊCH", text: $offsetInput)
+                        HexField(title: "SEGMENT FILEOFF", text: $segmentFileOffset)
+                        HexField(title: "SEGMENT VMADDR", text: $segmentVMAddress)
+                        HexField(title: "IMAGE BASE", text: $imageBaseForFile)
+                        Button("DỊCH OFFSET SANG RVA / VA") { translateFileOffset() }
+                            .font(.system(size: 10, weight: .bold)).foregroundColor(.iceBlue)
+                        if let translatedOffset { Text(translatedOffset).font(.system(size: 10, design: .monospaced)).foregroundColor(.white).textSelection(.enabled) }
                     }
                     Panel(title: "FIND STRINGS / BYTES", icon: "magnifyingglass") {
                         Picker("Search mode", selection: $searchMode) { Text("String").tag(0); Text("HEX bytes").tag(1) }.pickerStyle(SegmentedPickerStyle())
@@ -258,21 +289,20 @@ struct FileLabView: View {
                 }
             }.padding(16)
         }
-        .fileImporter(
-            isPresented: $showImporter,
-            allowedContentTypes: [.item],
-            allowsMultipleSelection: false
-        ) { result in
+        .fileImporter(isPresented: $showImporter,
+                      allowedContentTypes: [.item],
+                      allowsMultipleSelection: false) { result in
             switch result {
             case .success(let urls):
-                guard let pickedURL = urls.first else {
-                    status = "Chưa chọn tệp nào."
+                guard let selectedURL = urls.first else {
+                    errorMessage = "Bạn chưa chọn tệp."
+                    status = "Chưa có tệp được chọn."
                     return
                 }
-                handlePickedURL(pickedURL)
+                handlePickedURL(selectedURL)
             case .failure(let error):
-                errorMessage = "Không mở được trình chọn tệp: \(error.localizedDescription)"
-                status = "Trình chọn tệp đã trả về lỗi."
+                errorMessage = "Không chọn được tệp: \(error.localizedDescription)"
+                status = "Trình chọn tệp đã báo lỗi."
             }
         }
         .fileExporter(isPresented: $showExporter, document: exportDocument, contentType: .data, defaultFilename: exportName) { result in
@@ -285,9 +315,34 @@ struct FileLabView: View {
             let value = try OffsetCalculator.parseHex(offsetInput)
             guard value < UInt64(report.bytes.count) else { throw messageError("Offset nằm ngoài kích thước tệp.") }
             let start = Int(value), end = min(Int(value) + 256, report.bytes.count)
+            let byte = report.bytes[start]
+            let decimal = String(byte)
+            let ascii = (byte >= 32 && byte <= 126) ? String(UnicodeScalar(byte)) : "."
+            let next = Array(report.bytes[start..<min(start + 4, report.bytes.count)])
+            let le32 = next.enumerated().reduce(UInt32(0)) { $0 | (UInt32($1.element) << (UInt32($1.offset) * 8)) }
+            let be32 = next.reduce(UInt32(0)) { ($0 << 8) | UInt32($1) }
+            offsetDetails = "File offset: \(OffsetCalculator.hex(value))\nDecimal: \(start)\nByte: 0x\(String(byte, radix: 16, uppercase: true)) (\(decimal)) ASCII: \(ascii)\nUInt32 LE: 0x\(String(le32, radix: 16, uppercase: true))\nUInt32 BE: 0x\(String(be32, radix: 16, uppercase: true))"
             offsetPreview = FileStudyService.hexDump(bytes: Array(report.bytes[start..<end]), baseOffset: start)
             errorMessage = nil
         } catch { errorMessage = error.localizedDescription }
+    }
+
+    private func translateFileOffset() {
+        do {
+            let fileOffset = try OffsetCalculator.parseHex(offsetInput)
+            let segmentOffset = try OffsetCalculator.parseHex(segmentFileOffset)
+            let segmentVM = try OffsetCalculator.parseHex(segmentVMAddress)
+            let imageBase = try OffsetCalculator.parseHex(imageBaseForFile)
+            guard fileOffset >= segmentOffset, segmentVM >= imageBase else {
+                throw messageError("Offset nằm trước segment hoặc VM address nhỏ hơn image base.")
+            }
+            let delta = fileOffset - segmentOffset
+            let va = try OffsetCalculator.add(base: segmentVM, offset: delta)
+            guard va >= imageBase else { throw messageError("Không thể tính RVA với image base đã nhập.") }
+            let rva = va - imageBase
+            translatedOffset = "File Offset: \(OffsetCalculator.hex(fileOffset))\nRVA: \(OffsetCalculator.hex(rva))\nVA: \(OffsetCalculator.hex(va))\nCông thức: VA = Segment VMADDR + (File Offset - Segment FILEOFF)"
+            errorMessage = nil
+        } catch { translatedOffset = nil; errorMessage = error.localizedDescription }
     }
 
     private func findInFile(_ report: FileReport) {
@@ -340,22 +395,24 @@ struct FileLabView: View {
     }
 
     private func handlePickedURL(_ url: URL) {
-        let access = url.startAccessingSecurityScopedResource()
-        defer { if access { url.stopAccessingSecurityScopedResource() } }
+        status = "Đang nhập \(url.lastPathComponent)…"
+        errorMessage = nil
         do {
-            let values = try? url.resourceValues(forKeys: [.fileSizeKey])
-            if let size = values?.fileSize, size > FileStudyService.maximumFileSize {
-                throw messageError("Tệp lớn hơn 64 MB. Hãy dùng tệp nhỏ hơn.")
-            }
-            let openedReport = try FileStudyService.inspect(url: url)
+            let data = try FileStudyService.readSelectedFile(at: url)
+            let openedReport = try FileStudyService.inspect(data: data, name: url.lastPathComponent)
             report = openedReport
             undoBytes = nil
-            offsetInput = "0x0"; patchOffset = "0x0"; offsetPreview = nil; searchHits = []
-            status = "Đã mở \(url.lastPathComponent) • \(openedReport.formatInfo)"
+            offsetInput = "0x0"
+            patchOffset = "0x0"
+            offsetPreview = nil
+            offsetDetails = nil
+            translatedOffset = nil
+            searchHits = []
+            status = "Đã mở \(url.lastPathComponent) • \(openedReport.size) byte • \(openedReport.formatInfo)"
             errorMessage = nil
         } catch {
-            errorMessage = "Không đọc được tệp: \(error.localizedDescription)"
-            status = "Chưa mở được tệp. Hãy thử lưu tệp vào On My iPhone rồi mở lại."
+            errorMessage = "Không đọc được \(url.lastPathComponent): \(error.localizedDescription)"
+            status = "Đã chọn tệp nhưng không nhập được dữ liệu. Hãy tải tệp về On My iPhone rồi thử lại nếu tệp đang nằm trên iCloud/ổ mạng."
         }
     }
 
@@ -363,3 +420,4 @@ struct FileLabView: View {
         NSError(domain: "PEDINHIOS", code: 3, userInfo: [NSLocalizedDescriptionKey: message])
     }
 }
+
