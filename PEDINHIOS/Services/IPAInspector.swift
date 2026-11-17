@@ -1,6 +1,7 @@
 import Foundation
 import UniformTypeIdentifiers
 import SwiftUI
+import UIKit
 
 struct StringHit: Identifiable {
     let id = UUID()
@@ -28,7 +29,16 @@ enum FileStudyService {
     static let maximumFileSize = 64 * 1024 * 1024
 
     static func inspect(url: URL) throws -> FileReport {
-        let data = try Data(contentsOf: url, options: [.mappedIfSafe])
+        var coordinatedData: Data?
+        var coordinationError: NSError?
+        let coordinator = NSFileCoordinator(filePresenter: nil)
+        coordinator.coordinate(readingItemAt: url, options: [], error: &coordinationError) { readableURL in
+            coordinatedData = try? Data(contentsOf: readableURL)
+        }
+        if let coordinationError { throw coordinationError }
+        guard let data = coordinatedData else {
+            throw NSError(domain: "PEDINHIOS", code: 65, userInfo: [NSLocalizedDescriptionKey: "iOS không cấp quyền đọc tệp này. Hãy sao chép tệp vào mục Trên iPhone của tôi trong ứng dụng Tệp rồi thử lại."])
+        }
         guard data.count <= maximumFileSize else {
             throw NSError(domain: "PEDINHIOS", code: 64, userInfo: [NSLocalizedDescriptionKey: "Tệp vượt giới hạn chỉnh sửa an toàn 64 MB."])
         }
@@ -242,7 +252,13 @@ struct FileLabView: View {
                 }
             }.padding(16)
         }
-        .fileImporter(isPresented: $showImporter, allowedContentTypes: [.item], allowsMultipleSelection: false) { handleImport($0) }
+        .sheet(isPresented: $showImporter) {
+            UniversalDocumentPicker { pickedURL in
+                showImporter = false
+                handlePickedURL(pickedURL)
+            }
+            .ignoresSafeArea()
+        }
         .fileExporter(isPresented: $showExporter, document: exportDocument, contentType: .data, defaultFilename: exportName) { result in
             switch result { case .success: status = "Đã xuất tệp đã chỉnh sửa."; case .failure(let error): errorMessage = error.localizedDescription }
         }
@@ -307,25 +323,56 @@ struct FileLabView: View {
         showExporter = true
     }
 
-    private func handleImport(_ result: Result<[URL], Error>) {
-        switch result {
-        case .success(let urls):
-            guard let url = urls.first else { return }
-            let access = url.startAccessingSecurityScopedResource()
-            defer { if access { url.stopAccessingSecurityScopedResource() } }
-            do {
-                let values = try url.resourceValues(forKeys: [.fileSizeKey])
-                if let size = values.fileSize, size > FileStudyService.maximumFileSize { throw messageError("Tệp lớn hơn 64 MB. Hãy dùng tệp nhỏ hơn.") }
-                report = try FileStudyService.inspect(url: url)
-                undoBytes = nil
-                offsetInput = "0x0"; patchOffset = "0x0"; offsetPreview = nil; searchHits = []
-                status = "Đã mở \(url.lastPathComponent) • \(report?.formatInfo ?? "Binary")"; errorMessage = nil
-            } catch { errorMessage = "Không đọc được tệp: \(error.localizedDescription)" }
-        case .failure(let error): errorMessage = "Không thể mở tệp: \(error.localizedDescription)"
+    private func handlePickedURL(_ url: URL) {
+        let access = url.startAccessingSecurityScopedResource()
+        defer { if access { url.stopAccessingSecurityScopedResource() } }
+        do {
+            let values = try? url.resourceValues(forKeys: [.fileSizeKey])
+            if let size = values?.fileSize, size > FileStudyService.maximumFileSize {
+                throw messageError("Tệp lớn hơn 64 MB. Hãy dùng tệp nhỏ hơn.")
+            }
+            let openedReport = try FileStudyService.inspect(url: url)
+            report = openedReport
+            undoBytes = nil
+            offsetInput = "0x0"; patchOffset = "0x0"; offsetPreview = nil; searchHits = []
+            status = "Đã mở \(url.lastPathComponent) • \(openedReport.formatInfo)"
+            errorMessage = nil
+        } catch {
+            errorMessage = "Không đọc được tệp: \(error.localizedDescription)"
+            status = "Chưa mở được tệp. Hãy thử lưu tệp vào On My iPhone rồi mở lại."
         }
     }
 
     private func messageError(_ message: String) -> NSError {
         NSError(domain: "PEDINHIOS", code: 3, userInfo: [NSLocalizedDescriptionKey: message])
+    }
+}
+
+
+/// Native iOS document picker using the broad public.item type so files with
+/// unknown extensions (DAT, SO, custom game assets, etc.) remain selectable.
+struct UniversalDocumentPicker: UIViewControllerRepresentable {
+    let onPick: (URL) -> Void
+
+    func makeCoordinator() -> Coordinator { Coordinator(onPick: onPick) }
+
+    func makeUIViewController(context: Context) -> UIDocumentPickerViewController {
+        let picker = UIDocumentPickerViewController(documentTypes: ["public.item"], in: .open)
+        picker.delegate = context.coordinator
+        picker.allowsMultipleSelection = false
+        picker.shouldShowFileExtensions = true
+        return picker
+    }
+
+    func updateUIViewController(_ controller: UIDocumentPickerViewController, context: Context) {}
+
+    final class Coordinator: NSObject, UIDocumentPickerDelegate {
+        let onPick: (URL) -> Void
+        init(onPick: @escaping (URL) -> Void) { self.onPick = onPick }
+        func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
+            guard let url = urls.first else { return }
+            onPick(url)
+        }
+        func documentPickerWasCancelled(_ controller: UIDocumentPickerViewController) {}
     }
 }
