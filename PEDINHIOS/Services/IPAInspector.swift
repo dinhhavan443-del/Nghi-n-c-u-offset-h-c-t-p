@@ -31,13 +31,19 @@ enum FileStudyService {
     static func inspect(url: URL) throws -> FileReport {
         var coordinatedData: Data?
         var coordinationError: NSError?
+        var readError: Error?
         let coordinator = NSFileCoordinator(filePresenter: nil)
         coordinator.coordinate(readingItemAt: url, options: [], error: &coordinationError) { readableURL in
-            coordinatedData = try? Data(contentsOf: readableURL)
+            do {
+                coordinatedData = try Data(contentsOf: readableURL, options: [.mappedIfSafe])
+            } catch {
+                readError = error
+            }
         }
         if let coordinationError { throw coordinationError }
+        if let readError { throw readError }
         guard let data = coordinatedData else {
-            throw NSError(domain: "PEDINHIOS", code: 65, userInfo: [NSLocalizedDescriptionKey: "iOS không cấp quyền đọc tệp này. Hãy sao chép tệp vào mục Trên iPhone của tôi trong ứng dụng Tệp rồi thử lại."])
+            throw NSError(domain: "PEDINHIOS", code: 65, userInfo: [NSLocalizedDescriptionKey: "Không đọc được nội dung tệp từ Files. Hãy thử tải tệp về máy hoặc lưu vào mục Trên iPhone của tôi rồi chọn lại."])
         }
         guard data.count <= maximumFileSize else {
             throw NSError(domain: "PEDINHIOS", code: 64, userInfo: [NSLocalizedDescriptionKey: "Tệp vượt giới hạn chỉnh sửa an toàn 64 MB."])
@@ -252,12 +258,22 @@ struct FileLabView: View {
                 }
             }.padding(16)
         }
-        .sheet(isPresented: $showImporter) {
-            UniversalDocumentPicker { pickedURL in
-                showImporter = false
+        .fileImporter(
+            isPresented: $showImporter,
+            allowedContentTypes: [.item],
+            allowsMultipleSelection: false
+        ) { result in
+            switch result {
+            case .success(let urls):
+                guard let pickedURL = urls.first else {
+                    status = "Chưa chọn tệp nào."
+                    return
+                }
                 handlePickedURL(pickedURL)
+            case .failure(let error):
+                errorMessage = "Không mở được trình chọn tệp: \(error.localizedDescription)"
+                status = "Trình chọn tệp đã trả về lỗi."
             }
-            .ignoresSafeArea()
         }
         .fileExporter(isPresented: $showExporter, document: exportDocument, contentType: .data, defaultFilename: exportName) { result in
             switch result { case .success: status = "Đã xuất tệp đã chỉnh sửa."; case .failure(let error): errorMessage = error.localizedDescription }
@@ -345,34 +361,5 @@ struct FileLabView: View {
 
     private func messageError(_ message: String) -> NSError {
         NSError(domain: "PEDINHIOS", code: 3, userInfo: [NSLocalizedDescriptionKey: message])
-    }
-}
-
-
-/// Native iOS document picker using the broad public.item type so files with
-/// unknown extensions (DAT, SO, custom game assets, etc.) remain selectable.
-struct UniversalDocumentPicker: UIViewControllerRepresentable {
-    let onPick: (URL) -> Void
-
-    func makeCoordinator() -> Coordinator { Coordinator(onPick: onPick) }
-
-    func makeUIViewController(context: Context) -> UIDocumentPickerViewController {
-        let picker = UIDocumentPickerViewController(documentTypes: ["public.item"], in: .open)
-        picker.delegate = context.coordinator
-        picker.allowsMultipleSelection = false
-        picker.shouldShowFileExtensions = true
-        return picker
-    }
-
-    func updateUIViewController(_ controller: UIDocumentPickerViewController, context: Context) {}
-
-    final class Coordinator: NSObject, UIDocumentPickerDelegate {
-        let onPick: (URL) -> Void
-        init(onPick: @escaping (URL) -> Void) { self.onPick = onPick }
-        func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
-            guard let url = urls.first else { return }
-            onPick(url)
-        }
-        func documentPickerWasCancelled(_ controller: UIDocumentPickerViewController) {}
     }
 }
