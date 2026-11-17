@@ -15,7 +15,7 @@ struct SettingsView: View {
                     InfoLine(label: "TikTok", value: "Pedinhios")
                 }
                 Text("PEDINHIOS MENU là bộ công cụ học tập và kiểm thử. Không inject, không đọc/ghi bộ nhớ tiến trình bên thứ ba.")
-                    .font(.system(size: 11)).foregroundStyle(.white.opacity(0.5))
+                    .font(.system(size: 11)).foregroundColor(.white.opacity(0.5))
                     .frame(maxWidth: .infinity, alignment: .leading)
             }.padding(18)
         }

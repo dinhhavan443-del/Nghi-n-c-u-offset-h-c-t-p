@@ -11,23 +11,23 @@ struct OffsetLabView: View {
             VStack(spacing: 14) {
                 Panel(title: "OFFSET CALCULATOR", icon: "number") {
                     Text("Tính Base Address + Offset bằng dữ liệu ví dụ. Công cụ không đọc hoặc sửa bộ nhớ game hay ứng dụng khác.")
-                        .font(.system(size: 11)).foregroundStyle(.white.opacity(0.55))
+                        .font(.system(size: 11)).foregroundColor(.white.opacity(0.55))
                     HexField(title: "BASE ADDRESS", text: $base)
                     HexField(title: "OFFSET", text: $offset)
                     Button(action: calculate) {
                         Label("CALCULATE ADDRESS", systemImage: "equal")
                             .font(.system(size: 12, weight: .black)).frame(maxWidth: .infinity).padding(14)
-                            .background(Color.iceBlue).foregroundStyle(Color.black)
+                            .background(Color.iceBlue).foregroundColor(Color.black)
                             .clipShape(RoundedRectangle(cornerRadius: 12))
                     }
                     VStack(alignment: .leading, spacing: 5) {
-                        Text("RESULT").font(.system(size: 9, weight: .bold)).tracking(1.4).foregroundStyle(Color.iceBlue)
-                        Text(result).font(.system(size: 22, weight: .black, design: .monospaced)).foregroundStyle(.white)
+                        Text("RESULT").font(.system(size: 9, weight: .bold)).tracking(1.4).foregroundColor(Color.iceBlue)
+                        Text(result).font(.system(size: 22, weight: .black, design: .monospaced)).foregroundColor(.white)
                             .textSelection(.enabled)
                     }.frame(maxWidth: .infinity, alignment: .leading).padding(13)
                         .background(Color.black.opacity(0.25)).clipShape(RoundedRectangle(cornerRadius: 12))
                     if let error {
-                        Text(error).font(.system(size: 11)).foregroundStyle(.red)
+                        Text(error).font(.system(size: 11)).foregroundColor(.red)
                     }
                 }
                 Panel(title: "LEARNING NOTES", icon: "book.closed") {
@@ -56,7 +56,7 @@ struct HexField: View {
     @Binding var text: String
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text(title).font(.system(size: 9, weight: .bold)).tracking(1.3).foregroundStyle(.white.opacity(0.55))
+            Text(title).font(.system(size: 9, weight: .bold)).tracking(1.3).foregroundColor(.white.opacity(0.55))
             TextField("0x...", text: $text).textInputAutocapitalization(.characters)
                 .autocorrectionDisabled().font(.system(size: 14, weight: .semibold, design: .monospaced))
                 .padding(12).background(Color.black.opacity(0.25)).clipShape(RoundedRectangle(cornerRadius: 10))
@@ -69,8 +69,8 @@ struct NoteRow: View {
     let detail: String
     var body: some View {
         VStack(alignment: .leading, spacing: 3) {
-            Text(title).font(.system(size: 12, weight: .bold)).foregroundStyle(Color.iceBlue)
-            Text(detail).font(.system(size: 11)).foregroundStyle(.white.opacity(0.58))
+            Text(title).font(.system(size: 12, weight: .bold)).foregroundColor(Color.iceBlue)
+            Text(detail).font(.system(size: 11)).foregroundColor(.white.opacity(0.58))
         }.frame(maxWidth: .infinity, alignment: .leading)
     }
 }

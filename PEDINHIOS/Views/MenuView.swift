@@ -20,7 +20,7 @@ struct MenuView: View {
                     ModuleRow(icon: "shippingbox", title: "Dylib Inspector", subtitle: "Tìm hiểu thư viện đóng gói")
                 }
                 Text("Các công tắc chỉ điều khiển chức năng bên trong PEDINHIOS MENU.")
-                    .font(.system(size: 11)).foregroundStyle(.white.opacity(0.45)).frame(maxWidth: .infinity, alignment: .leading)
+                    .font(.system(size: 11)).foregroundColor(.white.opacity(0.45)).frame(maxWidth: .infinity, alignment: .leading)
             }.padding(18)
         }
     }
@@ -33,8 +33,8 @@ struct ToggleRow: View {
     var body: some View {
         HStack {
             VStack(alignment: .leading, spacing: 3) {
-                Text(title).font(.system(size: 13, weight: .semibold)).foregroundStyle(.white)
-                Text(detail).font(.system(size: 10)).foregroundStyle(.white.opacity(0.48))
+                Text(title).font(.system(size: 13, weight: .semibold)).foregroundColor(.white)
+                Text(detail).font(.system(size: 10)).foregroundColor(.white.opacity(0.48))
             }
             Spacer()
             Toggle(title, isOn: $isOn).labelsHidden().tint(Color.iceBlue)
@@ -48,14 +48,14 @@ struct ModuleRow: View {
     let subtitle: String
     var body: some View {
         HStack(spacing: 12) {
-            Image(systemName: icon).foregroundStyle(Color.iceBlue).frame(width: 34, height: 34)
+            Image(systemName: icon).foregroundColor(Color.iceBlue).frame(width: 34, height: 34)
                 .background(Color.iceBlue.opacity(0.1)).clipShape(RoundedRectangle(cornerRadius: 10))
             VStack(alignment: .leading, spacing: 3) {
-                Text(title).font(.system(size: 12, weight: .bold)).foregroundStyle(.white)
-                Text(subtitle).font(.system(size: 10)).foregroundStyle(.white.opacity(0.48))
+                Text(title).font(.system(size: 12, weight: .bold)).foregroundColor(.white)
+                Text(subtitle).font(.system(size: 10)).foregroundColor(.white.opacity(0.48))
             }
             Spacer()
-            Image(systemName: "chevron.right").font(.system(size: 10, weight: .bold)).foregroundStyle(.white.opacity(0.3))
+            Image(systemName: "chevron.right").font(.system(size: 10, weight: .bold)).foregroundColor(.white.opacity(0.3))
         }
     }
 }

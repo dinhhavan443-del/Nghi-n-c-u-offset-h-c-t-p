@@ -52,17 +52,17 @@ struct HeaderView: View {
             ZStack {
                 RoundedRectangle(cornerRadius: 13).fill(Color.iceBlue.opacity(0.13))
                     .frame(width: 44, height: 44)
-                Image(systemName: "snowflake").font(.system(size: 22, weight: .bold)).foregroundStyle(Color.iceBlue)
+                Image(systemName: "snowflake").font(.system(size: 22, weight: .bold)).foregroundColor(Color.iceBlue)
             }
             VStack(alignment: .leading, spacing: 3) {
                 Text(AppConfig.name).font(.system(size: 16, weight: .black, design: .rounded))
-                    .tracking(1.1).foregroundStyle(.white)
+                    .tracking(1.1).foregroundColor(.white)
                 Text("CONTROL CENTER  •  iOS").font(.system(size: 9, weight: .semibold)).tracking(1.4)
-                    .foregroundStyle(Color.iceBlue.opacity(0.8))
+                    .foregroundColor(Color.iceBlue.opacity(0.8))
             }
             Spacer()
             Circle().fill(Color.green).frame(width: 7, height: 7)
-            Text("READY").font(.system(size: 10, weight: .bold)).foregroundStyle(.green)
+            Text("READY").font(.system(size: 10, weight: .bold)).foregroundColor(.green)
         }.padding(.horizontal, 20).padding(.top, 12).padding(.bottom, 16)
     }
 }
@@ -79,7 +79,7 @@ struct BottomBar: View {
                         Image(systemName: items[index].0).font(.system(size: 17, weight: .semibold))
                         Text(items[index].1).font(.system(size: 9, weight: .semibold))
                     }
-                    .foregroundStyle(selection == index ? Color.iceBlue : Color.white.opacity(0.48))
+                    .foregroundColor(selection == index ? Color.iceBlue : Color.white.opacity(0.48))
                     .frame(maxWidth: .infinity).padding(.vertical, 12)
                     .background(selection == index ? Color.iceBlue.opacity(0.09) : .clear)
                 }.buttonStyle(.plain)
@@ -94,15 +94,27 @@ struct BottomBar: View {
 struct Panel<Content: View>: View {
     let title: String
     let icon: String
-    @ViewBuilder let content: Content
+    let content: Content
+
+    init(title: String, icon: String, @ViewBuilder content: () -> Content) {
+        self.title = title
+        self.icon = icon
+        self.content = content()
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 13) {
-            Label(title, systemImage: icon).font(.system(size: 14, weight: .bold)).foregroundStyle(Color.iceBlue)
+            Label(title, systemImage: icon)
+                .font(.system(size: 14, weight: .bold))
+                .foregroundColor(Color.iceBlue)
             content
         }
         .padding(16)
         .background(Color.panel.opacity(0.92))
-        .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color.iceBlue.opacity(0.16), lineWidth: 1))
+        .overlay(
+            RoundedRectangle(cornerRadius: 18)
+                .stroke(Color.iceBlue.opacity(0.16), lineWidth: 1)
+        )
         .clipShape(RoundedRectangle(cornerRadius: 18))
     }
 }

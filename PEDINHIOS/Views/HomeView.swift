@@ -5,14 +5,14 @@ struct HomeView: View {
         ScrollView(showsIndicators: false) {
             VStack(spacing: 15) {
                 VStack(alignment: .leading, spacing: 12) {
-                    Text("WELCOME BACK").font(.system(size: 10, weight: .bold)).tracking(2).foregroundStyle(Color.iceBlue)
-                    Text("PEDINHIOS\nCONTROL").font(.system(size: 32, weight: .black, design: .rounded)).foregroundStyle(.white)
-                    Text("Bộ công cụ nghiên cứu và tiện ích iOS").font(.system(size: 13)).foregroundStyle(.white.opacity(0.62))
+                    Text("WELCOME BACK").font(.system(size: 10, weight: .bold)).tracking(2).foregroundColor(Color.iceBlue)
+                    Text("PEDINHIOS\nCONTROL").font(.system(size: 32, weight: .black, design: .rounded)).foregroundColor(.white)
+                    Text("Bộ công cụ nghiên cứu và tiện ích iOS").font(.system(size: 13)).foregroundColor(.white.opacity(0.62))
                     HStack {
                         Label("ỨNG DỤNG ĐANG HOẠT ĐỘNG", systemImage: "checkmark.circle.fill")
-                            .font(.system(size: 10, weight: .bold)).foregroundStyle(.green)
+                            .font(.system(size: 10, weight: .bold)).foregroundColor(.green)
                         Spacer()
-                        Text("v1.0").font(.system(size: 10, weight: .bold, design: .monospaced)).foregroundStyle(.white.opacity(0.5))
+                        Text("v1.0").font(.system(size: 10, weight: .bold, design: .monospaced)).foregroundColor(.white.opacity(0.5))
                     }.padding(.top, 8)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -34,7 +34,7 @@ struct HomeView: View {
                     InfoLine(label: "Build", value: "GitHub Actions")
                 }
                 Text("PEDINHIOS MENU • EDUCATIONAL TOOLKIT").font(.system(size: 9, weight: .semibold)).tracking(1.2)
-                    .foregroundStyle(.white.opacity(0.3)).padding(.top, 4)
+                    .foregroundColor(.white.opacity(0.3)).padding(.top, 4)
             }.padding(18)
         }
     }
@@ -45,8 +45,8 @@ struct StatTile: View {
     let label: String
     var body: some View {
         VStack(spacing: 6) {
-            Text(value).font(.system(size: 15, weight: .black, design: .rounded)).foregroundStyle(.white)
-            Text(label).font(.system(size: 8, weight: .bold)).foregroundStyle(Color.iceBlue.opacity(0.8))
+            Text(value).font(.system(size: 15, weight: .black, design: .rounded)).foregroundColor(.white)
+            Text(label).font(.system(size: 8, weight: .bold)).foregroundColor(Color.iceBlue.opacity(0.8))
         }.frame(maxWidth: .infinity).padding(.vertical, 13)
             .background(Color.white.opacity(0.045)).clipShape(RoundedRectangle(cornerRadius: 12))
     }
@@ -57,9 +57,9 @@ struct InfoLine: View {
     let value: String
     var body: some View {
         HStack {
-            Text(label).foregroundStyle(.white.opacity(0.5))
+            Text(label).foregroundColor(.white.opacity(0.5))
             Spacer()
-            Text(value).foregroundStyle(.white).fontWeight(.semibold)
+            Text(value).foregroundColor(.white).font(.system(size: 12, weight: .semibold))
         }.font(.system(size: 12))
     }
 }
